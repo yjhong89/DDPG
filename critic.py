@@ -17,6 +17,7 @@ class Critic()
 
 		self.states = tf.placeholder(tf.float32, [None, self.state_dim])
 		self.actions = tf.placeholder(tf.float32, [None, self.action_dim])
+		self.rewards = tf.placeholder(tf.float32, [None])
 	
 		# Initialized from uniform distributions [-1/root(f), 1/root(f)] where f is fan-in
 		weight1 = tf.Variable(tf.random.uniform((self.state_dim, self.args.layer1), -1/math.sqrt(self.state_dim), 1/math.sqrt(self.state_dim), name='Weigh1')
@@ -49,7 +50,8 @@ class Critic()
 			self.layer3_out = tf.matmul(layer2_out, weight3) + bias3
 			self.target_states, self.target_actions, self.target_layer3_out = self.create_target_network(variable_list)
 
-		target_q = tf.placeholder(tf.float32, [None])
+		self.target_q = tf.placeholder(tf.float32, [None])
+		self.target = self.rewards + self.args.gamma*self.target_q
 		# Include l2 regularization term
 		self.l2_decay = 0
 		for i in variable_list:
@@ -57,9 +59,10 @@ class Critic()
 			# sum(input**2)/2
 			self.l2_decay += tf.nn.l2_loss(i)
 		self.l2_decay *+ self.args.regularize_decay
-		self.cost = tf.reduce_mean(tf.pow(target_q - self.layer3_out, 2)) + self.l2_decay
+		self.cost = tf.reduce_mean(tf.pow(self.target - self.layer3_out, 2)) + self.l2_decay
 		self.optimizer = tf.train.AdamOptimizer(self.critic_lr).minimize(self.cost)
 		# To feed critic, get gradient with respect to action input
+		# Will be [batch size, num actions]
 		self.gradients = tf.gradients(self.cost, self.actions)
 
 		self.sess.run(tf.global_variables_initializer())
@@ -95,9 +98,6 @@ class Critic()
 		else:
 			self.sess.run(self.target_soft_update)
 	
-
-
-
 
 
 
