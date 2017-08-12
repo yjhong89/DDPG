@@ -5,6 +5,7 @@ from batch_norm import batch_wrapper
 
 class Actor():
 	def __init__(self, args, sess, state_dim, action_dim):
+		print('Initializing actor network')
 		self.args = args
 		self.sess = sess
 		self.state_dim = state_dim

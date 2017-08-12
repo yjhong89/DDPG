@@ -10,6 +10,7 @@ from batch_norm import batch_wrapper
 
 class Critic()
 	def __init__(self, args, sess, state_dim, action_dim):
+		print('Initializing critic network')
 		self.args = arg
 		self.sess = sess
 		self.state_dim = state_dim
@@ -18,6 +19,7 @@ class Critic()
 		self.states = tf.placeholder(tf.float32, [None, self.state_dim])
 		self.actions = tf.placeholder(tf.float32, [None, self.action_dim])
 		self.rewards = tf.placeholder(tf.float32, [None])
+		self.done = tf.placeholder(tf.float32, [None])
 	
 		# Initialized from uniform distributions [-1/root(f), 1/root(f)] where f is fan-in
 		weight1 = tf.Variable(tf.random.uniform((self.state_dim, self.args.layer1), -1/math.sqrt(self.state_dim), 1/math.sqrt(self.state_dim), name='Weigh1')
@@ -51,19 +53,19 @@ class Critic()
 			self.target_states, self.target_actions, self.target_layer3_out = self.create_target_network(variable_list)
 
 		self.target_q = tf.placeholder(tf.float32, [None])
-		self.target = self.rewards + self.args.gamma*self.target_q
+		self.target = self.rewards + tf.mul(1-self.done, self.args.gamma*self.target_q)
 		# Include l2 regularization term
 		self.l2_decay = 0
 		for i in variable_list:
 			# tf.nn.l2_loss returns 0-D tensor
 			# sum(input**2)/2
 			self.l2_decay += tf.nn.l2_loss(i)
-		self.l2_decay *+ self.args.regularize_decay
+		self.l2_decay *= self.args.regularize_decay
 		self.cost = tf.reduce_mean(tf.pow(self.target - self.layer3_out, 2)) + self.l2_decay
 		self.optimizer = tf.train.AdamOptimizer(self.critic_lr).minimize(self.cost)
 		# To feed critic, get gradient with respect to action input
 		# Will be [batch size, num actions]
-		self.gradients = tf.gradients(self.cost, self.actions)
+		self.gradients = tf.gradients(self.layer3_out, self.actions)
 
 		self.sess.run(tf.global_variables_initializer())
 		self.update_target()
