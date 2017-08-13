@@ -115,7 +115,7 @@ class Actor():
 		
 	def update_target(self):
 		if self.args.bn:
-			self.sess.run([self.target_soft_update, self.target_layer1_bn.update, self.target_layer2_bn.update, seef.target_layer3_bn.update])
+			self.sess.run([self.target_soft_update, self.target_layer1_bn.update, self.target_layer2_bn.update, self.target_layer3_bn.update])
 		else:
 			self.sess.run(self.target_soft_update)
 
