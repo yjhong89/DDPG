@@ -96,7 +96,7 @@ class Critic()
 
 	def update_target(self):
 		if self.args.bn:
-			self.sess.run([self.target_soft_update, self.target_layer1_bn]
+			self.sess.run([self.target_soft_update, self.target_layer1_bn.update])
 		else:
 			self.sess.run(self.target_soft_update)
 	
