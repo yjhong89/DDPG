@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import gym
+import os
 from ddpg import DDPG
 import argparse
 
@@ -11,14 +12,14 @@ def main():
 	parser.add_argument('--batch_size', type=int, default=64)
 	parser.add_argument('--gamma', type=float, default=0.99)
 	parser.add_argument('--layer1', type=int, default=400)
-	parser.add_argument('--layer2', type=int, defaul=300)
+	parser.add_argument('--layer2', type=int, default=300)
 	parser.add_argument('--actor_lr', type=float, default=1e-4)
-	parser.add_argumnet('--critic_lr', type=float, default=1e-3)
+	parser.add_argument('--critic_lr', type=float, default=1e-3)
 	parser.add_argument('--tau', type=float, default=1e-3)
 	parser.add_argument('--regularize_decay', type=float, default=1e-2)
 	parser.add_argument('--bn', type=str2bool, default='n')
 	parser.add_argument('--num_episodes', type=int, default=1e5)
-	parser.add_argument('--env_name', type=str, default'InvertedPendulum-v1')
+	parser.add_argument('--env_name', type=str, default='InvertedPendulum-v1')
 	parser.add_argument('--checkpoint_dir', type=str, default='./checkpoint')
 	parser.add_argument('--log_dir', type=str, default='./logs')
 	parser.add_argument('--training', type=str2bool, default='y')

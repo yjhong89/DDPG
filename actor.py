@@ -16,7 +16,7 @@ class Actor():
 		# Initialized from unifom distributions [-1/root(f), 1/root(f)] where f is fan-in
 		weight_layer1 = tf.Variable(tf.random_uniform([self.state_dim, self.args.layer1], -1/math.sqrt(self.state_dim), 1/math.sqrt(self.state_dim)), name='Weight1') 		
 		bias_layer1 = tf.Variable(tf.random_uniform([self.args.layer1], -1e-3, 1e-3), name='Bias1')
-		weight_layer2 = tf.Variable(tf.random_uniform([self.args.layer1, self.args.layer2], -1/math.sqrt(self.args.layer1), 1, math.sqrt(self.args.layer1), name='Weight2')
+		weight_layer2 = tf.Variable(tf.random_uniform([self.args.layer1, self.args.layer2], -1/math.sqrt(self.args.layer1), 1, math.sqrt(self.args.layer1)), name='Weight2')
 		bias_layer2 = tf.Variable(tf.random_uniform([self.args.layer2], -1e-3, 1e-3), name='Bias2')
 		# Final layer variables are initialized from uniform distribution [-0.003, 0.003] 
 		# To ensure initial output to be zero
@@ -24,7 +24,7 @@ class Actor():
 		bias_layer3 = tf.Variable(tf.random_uniform([self.action_dim], -1e-3, 1e-3), name='Bias3')
 
 		tr_vrbs = tf.trainable_variables()
-		for i in xrange(len(self.tr_vrbs):
+		for i in xrange(len(self.tr_vrbs)):
 			print(i.op.name)
 
 		# Bias1, Bias2, Bias3, Weight1, Weigh2, Weight3
@@ -101,7 +101,7 @@ class Actor():
 			layer1_out = tf.nn.relu(layer1_bn)
 			self.target_layer2_bn = batch_wrapper(tf.matmul(layer1_out, target_variable[4]) + target_variable[1], is_training, tau=selef.args.tau, target=self.layer2_bn,  name='Target_BN2')
 			layer2_out = tf.nn.relu(layer2_bn)
-			self.layer3_layer3_bn = batch_wrapper(tf.matmul(layer2_out, target_variable[5] + target_variable[2], is_training, tau=self.args.tau, target=self.layer3_bn, name='Traget_BN3')
+			self.layer3_layer3_bn = batch_wrapper(tf.matmul(layer2_out, target_variable[5]) + target_variable[2], is_training, tau=self.args.tau, target=self.layer3_bn, name='Traget_BN3')
 			layer3_out = tf.nn.tanh(layer3_bn)
 
 			return states, layer3_out, soft_update, is_training

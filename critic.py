@@ -8,7 +8,7 @@ from batch_norm import batch_wrapper
 	Differs from using L2 weight decay and action is included as inputs
 '''
 
-class Critic()
+class Critic():
 	def __init__(self, args, sess, state_dim, action_dim):
 		print('Initializing critic network')
 		self.args = arg
@@ -22,11 +22,11 @@ class Critic()
 		self.done = tf.placeholder(tf.float32, [None])
 	
 		# Initialized from uniform distributions [-1/root(f), 1/root(f)] where f is fan-in
-		weight1 = tf.Variable(tf.random.uniform((self.state_dim, self.args.layer1), -1/math.sqrt(self.state_dim), 1/math.sqrt(self.state_dim), name='Weigh1')
-		bias1 = tf.Variable(tf.random.uniform((self.args.layer1), -1e-3, 1e-3, name='Bias1')
+		weight1 = tf.Variable(tf.random.uniform((self.state_dim, self.args.layer1), -1/math.sqrt(self.state_dim), 1/math.sqrt(self.state_dim)), name='Weigh1')
+		bias1 = tf.Variable(tf.random.uniform((self.args.layer1), -1e-3, 1e-3), name='Bias1')
 		# Action included
-		weight2 = tf.Variable(tf.random.uniform((self.args.layer1, self.args.layer2), -1/math.sqrt(self.args.layer1+self.action_dim, 1/math.sqrt(self.args.layer1+self.action_dim), name='Weight2')
-		weight2_action = tf.Variable(tf.random.uniform((self.action_dim, self.args.layer2), -1/math.sqrt(self.args.layer1+self.action_dim, 1/math.sqrt(self.args.layer1+self.action_dim), name='Weight2_A')
+		weight2 = tf.Variable(tf.random.uniform((self.args.layer1, self.args.layer2), -1/math.sqrt(self.args.layer1+self.action_dim), 1/math.sqrt(self.args.layer1+self.action_dim)), name='Weight2')
+		weight2_action = tf.Variable(tf.random.uniform((self.action_dim, self.args.layer2), -1/math.sqrt(self.args.layer1+self.action_dim), 1/math.sqrt(self.args.layer1+self.action_dim)), name='Weight2_A')
 		bias2 = tf.Variable(tf.random.uniform((self.args.layer2), -1e-3, 1e-3, name='Bias2'))
 		# Output : (1,) shape representing Q value
 		weight3 = tf.Variable(tf.random.uniform((self.args.layer2, 1), -3e-3, 3e-3, name='Weight3'))

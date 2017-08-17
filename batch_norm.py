@@ -11,7 +11,7 @@ class batch_wrapper():
 			self.pop_mean = tf.get_variable('Pop_mean', [inputs.get_shape()[-1]], trainable=False, initializer=tf.constant_initializer(1))
 			self.pop_var = tf.get_variable('Pop_var', [inputs.get_shape()[-1]], trainable=False, initializer=tf.constant_initializer(0))
 
-		def training:
+		def training(self):
 			batch_mean, batch_var = tf.nn.moments(inputs, [0])
 			self.train_mean = tf.assign(pop_mean, pop_mean*decay + batch_mean*(1-decay))
 			self.train_var = tf.assign(pop_var, pop_var*decay + batch_var*(1-decay))
@@ -19,7 +19,7 @@ class batch_wrapper():
 				# Use batch mean and var when training
 				return tf.nn.batch_normalization(inputs, batch_mean, batch_var, beta, scale, variance_epsilon=1e-6)
 
-		def test:
+		def test(self):
 			# Use population mean and variance when testing
 			return tf.nn.batch_normalization(inputs, self.train_mean, self.train_var, beta, scale, variance_epsilon=1e-6)
 

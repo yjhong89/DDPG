@@ -40,7 +40,7 @@ class DDPG:
 	
 		utils.initialize_log()
 		
-		self.env.monitor.start(self.args.env_name, force=True
+		self.env.monitor.start(self.args.env_name, force=True)
 		
 		for episode in xrange(self.args.num_episodes):
 			print('%d episode starts' % episode+1) 
@@ -69,7 +69,7 @@ class DDPG:
 						# Get next action from actor target network
 						batch_next_action = self.sess.run(self.actor_network.target_layer3_out, feed_dict={self.actor_network.target_states:batch_next_s, self.target_is_training:False})
 						# Get target q
-						batch_target_q = self.sess.run(self.critic_network.target_layer3_out, feed_dict={self.target_states:batch_next_s, self.target_actions:batch_next_action, self.target_is_training:False}
+						batch_target_q = self.sess.run(self.critic_network.target_layer3_out, feed_dict={self.target_states:batch_next_s, self.target_actions:batch_next_action, self.target_is_training:False})
 
 						# Set target and update critic by minimizing the loss
 						feed_dict = {self.critic_network.states:batch_s, self.critic_network.actions:batch_act, self.critic_network.rewards:batch_rwd, self.critic_network.done:batch_done, self.critic_network.target_q:batch_target_q, self.critic_network.is_training:True}
@@ -83,7 +83,7 @@ class DDPG:
 
 					else:
 						batch_next_action = self.sess.run(self.action_network.target_layer3_out, feed_dict={self.actor_network.target_states:batch_next_s})
-						batch_target_q = self.sess.run(self.critic_network.target_layer3_out, feed_dict={self.target_states:batch_next_s, self.target_actions:batch_next_action)
+						batch_target_q = self.sess.run(self.critic_network.target_layer3_out, feed_dict={self.target_states:batch_next_s, self.target_actions:batch_next_action})
 
 						# Set target(y) and update critic by minimizing the loss
 						feed_dict = {self.critic_network.states:batch_s, self.critic_network.actions:batch_act, self.critic_network.rewards:batch_rwd, self.critic_network.done:batch_done, self.critic_network.target_q:batch_target_q}
@@ -119,14 +119,14 @@ class DDPG:
 		if self.args.bn:
 			current_policy_action = self.sess.run(self.actor_network.layer3_out, feed_dict={self.actor_network.states:np.asarray([obs]), self.actor_network.is_training:False})[0]
 		else:
-			current_policy_action = self.sess.run(self.actor_network.layer3_out, feed_dict={self.actor_network.states:np.asarray([obs]})[0]
+			current_policy_action = self.sess.run(self.actor_network.layer3_out, feed_dict={self.actor_network.states:np.asarray([obs])})[0]
 		return current_policy_action + self.exploration.noise()
 
 	def pure_actor_action(self, obs):
 		if self.args.bn:
 			current_policy_action = self.sess.run(self.actor_network.layer3_out, feed_dict={self.actor_network.states:np.asarray([obs]), self.actor_network.is_training:False})[0]
 		else:
-			current_policy_action = self.sess.run(self.actor_network.layer3_out, feed_dict={self.actor_network.states:np.asarray([obs]})[0]
+			current_policy_action = self.sess.run(self.actor_network.layer3_out, feed_dict={self.actor_network.states:np.asarray([obs])})[0]
 		return current_policy_action
 		
 
