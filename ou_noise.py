@@ -11,14 +11,15 @@ class OU_noise:
 		self.mu = mu
 		self.theta = theta
 		self.sigma = sigma
-		self.result = np.ones(self.action_dimention) * self.mu
+		self.result = np.ones(self.action_dim) * self.mu
 		self.reset()
 
 	def reset(self):
-		self.result = np.ones(self.action_dimention) * self.mu
+		self.result = np.ones(self.action_dim) * self.mu
 		
 	def noise(self):
 		x = self.result
 		dx = self.theta * (self.mu - x) + self.sigma * np.random.randn(len(x))
 		self.result = x + dx
+		#print(self.result)
 		return self.result

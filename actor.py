@@ -12,23 +12,23 @@ class Actor():
 		self.action_dim = action_dim
 
 		self.states = tf.placeholder(tf.float32, [None, self.state_dim])
-			
-		# Initialized from unifom distributions [-1/root(f), 1/root(f)] where f is fan-in
-		weight_layer1 = tf.Variable(tf.random_uniform([self.state_dim, self.args.layer1], -1/math.sqrt(self.state_dim), 1/math.sqrt(self.state_dim)), name='Weight1') 		
-		bias_layer1 = tf.Variable(tf.random_uniform([self.args.layer1], -1e-3, 1e-3), name='Bias1')
-		weight_layer2 = tf.Variable(tf.random_uniform([self.args.layer1, self.args.layer2], -1/math.sqrt(self.args.layer1), 1, math.sqrt(self.args.layer1)), name='Weight2')
-		bias_layer2 = tf.Variable(tf.random_uniform([self.args.layer2], -1e-3, 1e-3), name='Bias2')
-		# Final layer variables are initialized from uniform distribution [-0.003, 0.003] 
-		# To ensure initial output to be zero
-		weight_layer3 = tf.Variable(tf.random_uniform([self.args.layer2, self.action_dim], -3e-3, 3e-3), name='Weight3')
-		bias_layer3 = tf.Variable(tf.random_uniform([self.action_dim], -1e-3, 1e-3), name='Bias3')
+
+		with tf.variable_scope('Actor'):
+			# Initialized from unifom distributions [-1/root(f), 1/root(f)] where f is fan-in
+			weight_layer1 = tf.Variable(tf.random_uniform([self.state_dim, self.args.layer1], -1/math.sqrt(self.state_dim), 1/math.sqrt(self.state_dim)), name='Weight1') 		
+			bias_layer1 = tf.Variable(tf.random_uniform([self.args.layer1], -1e-3, 1e-3), name='Bias1')
+			weight_layer2 = tf.Variable(tf.random_uniform([self.args.layer1, self.args.layer2], -1/math.sqrt(self.args.layer1), 1/math.sqrt(self.args.layer1)), name='Weight2')
+			bias_layer2 = tf.Variable(tf.random_uniform([self.args.layer2], -1e-3, 1e-3), name='Bias2')
+			# Final layer variables are initialized from uniform distribution [-0.003, 0.003] 
+			# To ensure initial output to be zero
+			weight_layer3 = tf.Variable(tf.random_uniform([self.args.layer2, self.action_dim], -3e-3, 3e-3), name='Weight3')
+			bias_layer3 = tf.Variable(tf.random_uniform([self.action_dim], -1e-3, 1e-3), name='Bias3')
 
 		tr_vrbs = tf.trainable_variables()
-		for i in xrange(len(self.tr_vrbs)):
-			print(i.op.name)
-
 		# Bias1, Bias2, Bias3, Weight1, Weigh2, Weight3
-		variable_list = sorted(tr_vrbs, lambda x: x.op.name)
+		variable_list = sorted(tr_vrbs, key=lambda x: x.op.name)
+		for i in variable_list:
+			print(i.op.name)
 
 		if self.args.bn:
 			self.is_training = tf.placeholder(tf.bool)
@@ -64,7 +64,7 @@ class Actor():
 		'''
 		# Since q_action_gradient will have negative direction to minimize value estimate loss
 		self.gradients = tf.gradients(self.layer3_out, variable_list, -self.q_action_gradient)
-		self.optimizer = tf.train.AdamOptimizer(self.args.actor_lr).apply_gradient(zip(self.gradients, variable_list)) 
+		self.optimizer = tf.train.AdamOptimizer(self.args.actor_lr).apply_gradients(zip(self.gradients, variable_list)) 
 
 		self.sess.run(tf.global_variables_initializer())
 
@@ -87,7 +87,7 @@ class Actor():
 	def create_target_network(self, variable_list):
 		
 		states = tf.placeholder(tf.float32, [None, self.state_dim])
-		ema = tf.train.ExponentialMovingAvereage(decay=1-self.args.tau)
+		ema = tf.train.ExponentialMovingAverage(decay=1-self.args.tau)
 		# Maintains moving averages of variables through Shadow variables(update shadow variables)
 		soft_update = ema.apply(variable_list)
 		# Soft updated values of variable

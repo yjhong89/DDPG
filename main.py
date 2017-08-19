@@ -18,13 +18,14 @@ def main():
 	parser.add_argument('--tau', type=float, default=1e-3)
 	parser.add_argument('--regularize_decay', type=float, default=1e-2)
 	parser.add_argument('--bn', type=str2bool, default='n')
-	parser.add_argument('--num_episodes', type=int, default=1e5)
+	parser.add_argument('--num_episodes', type=int, default=100000)
 	parser.add_argument('--env_name', type=str, default='InvertedPendulum-v1')
 	parser.add_argument('--checkpoint_dir', type=str, default='./checkpoint')
 	parser.add_argument('--log_dir', type=str, default='./logs')
 	parser.add_argument('--training', type=str2bool, default='y')
 	parser.add_argument('--test_episodes', type=int, default=1e2)
-
+	parser.add_argument('--monitor', type=str2bool, default='n')
+	parser.add_argument('--training_start', type=int, default=5000)
 	
 	args = parser.parse_args()
 	print(args)

@@ -7,17 +7,19 @@ TRAIN = 'train.csv'
 EVAL = 'eval.csv'
 
 def initialize_log():
-	try:
-		train_log = open(os.path.join(LOG_DIR, TRAIN), 'a')
-	except:
-		print('Initialize log..')
-		train_log = open(os.path.join(LOG_DIR, TRAIN), 'w')
+	train_log_path = os.path.join(LOG_DIR, TRAIN)
+	if not os.path.exists(train_log_path):
+		train_log = open(train_log_path, 'w')
 		train_log.write('Step\t'+',episode.rwd\t'+',episode.cost\t'+',time\n')
-	try:
-		eval_log = open(os.path.join(LOG_DIR, EVAL), 'a')
-	except:
-		eval_log = open(os.path.join(LOG_DIR, EVAL), 'w')
+	else:
+		train_log = open(train_log_path, 'a')
+	
+	eval_log_path = os.path.join(LOG_DIR, EVAL)
+	if not os.path.exists(eval_log_path):
+		eval_log = open(eval_log_path, 'w')
 		eval_log.write('Step\t'+',episode.rwd\t+'+',time\n')
+	else:
+		eval_log = open(eval_log_path, 'a')
 
 	return train_log, eval_log
 

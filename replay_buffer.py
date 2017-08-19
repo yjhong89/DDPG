@@ -11,12 +11,12 @@ class Replay_Buffer:
 		self.buffer = deque()
 
 	def insert(self, state, action, reward, next_state, done):
-		experience = [state, action, reward, next_state, done]
+		experience = (state, action, reward, next_state, done)
 
 		# Not full yet
 		if self.pointer < self.size:
 			# deque.append : add to right side
-			deque.append(experience)
+			self.buffer.append(experience)
 			self.pointer += 1
 		# When buffer is full
 		else:
