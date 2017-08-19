@@ -17,11 +17,12 @@ class DDPG:
 		self.state_dim = self.env.observation_space.shape[0]
 		# Get number of actions
 		self.action_dim = self.env.action_space.shape[0]
+		self.action_bound = abs(self.env.action_space.high[0])
 		# Get maximum steps per episode
 		self.step_per_episode = self.env.spec.timestep_limit
 		print('Number of actions : %d, Number of states : %d, Number of steps per episode : %d' % (self.action_dim, self.state_dim, self.step_per_episode))
 
-		self.actor_network = Actor(self.args, self.sess, self.state_dim, self.action_dim)
+		self.actor_network = Actor(self.args, self.sess, self.state_dim, self.action_dim, self.action_bound)
 		self.critic_network = Critic(self.args, self.sess, self.state_dim, self.action_dim)
 
 		# Initalize replay buffer

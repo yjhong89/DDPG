@@ -4,12 +4,13 @@ import math
 from batch_norm import batch_wrapper
 
 class Actor():
-	def __init__(self, args, sess, state_dim, action_dim):
+	def __init__(self, args, sess, state_dim, action_dim, action_bound):
 		print('Initializing actor network')
 		self.args = args
 		self.sess = sess
 		self.state_dim = state_dim
 		self.action_dim = action_dim
+		self.action_bound = action_bound
 
 		self.states = tf.placeholder(tf.float32, [None, self.state_dim])
 
@@ -39,7 +40,7 @@ class Actor():
 			layer2_out = tf.nn.relu(self.layer2_bn.do_bn)
 			
 			self.layer3_bn = batch_Wrapper(tf.matmul(layer2_out, weight_layer3) + bias_layer3, self.is_training, name='BN3')
-			self.layer3_out = self.action_dim*tf.tanh(self.layer3_bn.do_bn)
+			self.layer3_out = self.action_bound*tf.tanh(self.layer3_bn.do_bn)
 
 			self.target_states, self.target_layer3_out, self.target_soft_update, self.target_is_training = \
 				self.create_target_network(variable_list)
@@ -48,7 +49,7 @@ class Actor():
 			layer1_out = tf.nn.relu(tf.matmul(self.states, weight_layer1) + bias_layer1)
 			layer2_out = tf.nn.relu(tf.matmul(layer1_out, weight_layer2) + bias_layer2)
 			# Use tanh layer to bound the actions
-			self.layer3_out = self.action_dim*tf.tanh(tf.matmul(layer2_out, weight_layer3) + bias_layer3)
+			self.layer3_out = self.action_bound*tf.tanh(tf.matmul(layer2_out, weight_layer3) + bias_layer3)
 			self.target_states, self.target_layer3_out, self.target_soft_update = self.create_target_network(variable_list)
 
 			
@@ -103,14 +104,14 @@ class Actor():
 			self.target_layer2_bn = batch_wrapper(tf.matmul(layer1_out, target_variable[4]) + target_variable[1], is_training, tau=selef.args.tau, target=self.layer2_bn,  name='Target_BN2')
 			layer2_out = tf.nn.relu(layer2_bn)
 			self.layer3_layer3_bn = batch_wrapper(tf.matmul(layer2_out, target_variable[5]) + target_variable[2], is_training, tau=self.args.tau, target=self.layer3_bn, name='Traget_BN3')
-			layer3_out = self.action_dim*tf.nn.tanh(layer3_bn)
+			layer3_out = self.action_bound*tf.nn.tanh(layer3_bn)
 
 			return states, layer3_out, soft_update, is_training
 
 		else:
 			layer1_out = tf.nn.relu(tf.matmul(states, target_variable[3]) + target_variable[0])
 			layer2_out = tf.nn.relu(tf.matmul(layer1_out, target_variable[4]) + target_variable[1])
-			layer3_out = self.action_dim*tf.nn.tanh(tf.matmul(layer2_out, target_variable[5]) + target_variable[2])
+			layer3_out = self.action_bound*tf.nn.tanh(tf.matmul(layer2_out, target_variable[5]) + target_variable[2])
 			
 			return states, layer3_out, soft_update
 		
