@@ -44,12 +44,15 @@ class DDPG:
 			self.env.monitor.start(self.args.env_name, force=True)
 		
 		for episode in xrange(self.args.num_episodes):
+			if np.mod(self.args.save_interval, episode+1) == 0:
+				self.save(global_step=episode+1)
 			print('%d episode starts' % (episode+1)) 
 			# Initial observation
 			observation = self.env.reset()
 			for step in xrange(self.step_per_episode):
 				# Select action according to the current policy and exploration noise
 				action = self.get_action(observation)
+				print('Take action %3.3f' % action)
 				current_observation = observation
 				observation, reward, done, _ = self.env.step(action)
 			

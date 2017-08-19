@@ -26,6 +26,7 @@ def main():
 	parser.add_argument('--test_episodes', type=int, default=1e2)
 	parser.add_argument('--monitor', type=str2bool, default='n')
 	parser.add_argument('--training_start', type=int, default=5000)
+	parser.add_argument('--save_interval', type=int, default=20000)
 	
 	args = parser.parse_args()
 	print(args)
