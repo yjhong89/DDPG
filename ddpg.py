@@ -50,7 +50,7 @@ class DDPG:
 			self.env.monitor.start(self.args.env_name, force=True)
 		
 		for episode in xrange(1, self.args.num_episodes):
-			if self.args.save_interval == episode:
+			if np.mod(episode, self.args.save_interval) == 0:
 				self.save(global_step=episode)
 			print('%d episode starts' % (episode)) 
 			# Initial observation
@@ -117,7 +117,7 @@ class DDPG:
 					print('%d episode end' % (episode))
 					self.exploration.reset()
 					if self.replay_buffer.get_size > self.args.training_start:
-						utils.write_log(self.steps, self.reward_per_episode, episode, start_time, mode='train', total_loss=self.cost_per_episode)
+						utils.write_log(episode, self.steps, self.reward_per_episode, episode, start_time, mode='train', total_loss=self.cost_per_episode)
 					# Initialize log variable
 					self.initialize_statistics()
 					break
@@ -139,7 +139,7 @@ class DDPG:
 			current_policy_action = self.sess.run(self.actor_network.layer3_out, feed_dict={self.actor_network.states:np.asarray([obs]), self.actor_network.is_training:False})[0]
 		else:
 			current_policy_action = self.sess.run(self.actor_network.layer3_out, feed_dict={self.actor_network.states:np.asarray([obs])})[0]
-		return self.action_bound*current_policy_action + self.action_mean
+		return np.clip(self.action_bound*current_policy_action + self.action_mean, self.action_min, self.action_max)
 		
 
 	def eval(self):
