@@ -4,13 +4,12 @@ import math
 from batch_norm import batch_wrapper
 
 class Actor():
-	def __init__(self, args, sess, state_dim, action_dim, action_bound):
+	def __init__(self, args, sess, state_dim, action_dim):
 		print('Initializing actor network')
 		self.args = args
 		self.sess = sess
 		self.state_dim = state_dim
 		self.action_dim = action_dim
-		self.action_bound = action_bound
 
 		self.states = tf.placeholder(tf.float32, [None, self.state_dim])
 
@@ -25,9 +24,10 @@ class Actor():
 			weight_layer3 = tf.Variable(tf.random_uniform([self.args.layer2, self.action_dim], -3e-3, 3e-3), name='Weight3')
 			bias_layer3 = tf.Variable(tf.random_uniform([self.action_dim], -1e-3, 1e-3), name='Bias3')
 
-		tr_vrbs = tf.trainable_variables()
+#		tr_vrbs = tf.trainable_variables()
 		# Bias1, Bias2, Bias3, Weight1, Weigh2, Weight3
-		variable_list = sorted(tr_vrbs, key=lambda x: x.op.name)
+#		variable_list = sorted(tr_vrbs, key=lambda x: x.op.name)
+		variable_list = [weight_layer1, bias_layer1, weight_layer2, bias_layer2, weight_layer3, bias_layer3]		
 		for i in variable_list:
 			print(i.op.name)
 
@@ -40,7 +40,7 @@ class Actor():
 			layer2_out = tf.nn.relu(self.layer2_bn.do_bn)
 			
 			self.layer3_bn = batch_Wrapper(tf.matmul(layer2_out, weight_layer3) + bias_layer3, self.is_training, name='BN3')
-			self.layer3_out = self.action_bound*tf.tanh(self.layer3_bn.do_bn)
+			self.layer3_out = tf.tanh(self.layer3_bn.do_bn)
 
 			self.target_states, self.target_layer3_out, self.target_soft_update, self.target_is_training = \
 				self.create_target_network(variable_list)
@@ -49,7 +49,7 @@ class Actor():
 			layer1_out = tf.nn.relu(tf.matmul(self.states, weight_layer1) + bias_layer1)
 			layer2_out = tf.nn.relu(tf.matmul(layer1_out, weight_layer2) + bias_layer2)
 			# Use tanh layer to bound the actions
-			self.layer3_out = self.action_bound*tf.tanh(tf.matmul(layer2_out, weight_layer3) + bias_layer3)
+			self.layer3_out = tf.tanh(tf.matmul(layer2_out, weight_layer3) + bias_layer3)
 			self.target_states, self.target_layer3_out, self.target_soft_update = self.create_target_network(variable_list)
 
 			
@@ -60,7 +60,7 @@ class Actor():
 		'''
 			tf.gradients(ys, xs, grad_ys=None)
 			grad_ys : Optional. A tensor or list of tensors the same size as 'ys' and
-					holding the initiali gradients for each y in 'ys'
+					holding the initial gradients for each y in 'ys'
 			Simply, holding gradient of composition function	
 			Returns list of derivatives for each x in xs
 		'''
@@ -82,7 +82,7 @@ class Actor():
 	# Using target network by soft target update
 	# Use target network to calculate target value
 	'''
-		Rather tna directly copying the weights, create a copy of network and update target network by
+		Rather than directly copying the weights, create a copy of network and update target network by
 		slowly tracking using exponential moving average
 		This method greatly improves the stability of learning
 	'''
@@ -99,19 +99,19 @@ class Actor():
 		if self.args.bn:
 			is_training = tf.placeholder(tf.bool)
 			
-			self.target_layer1_bn = batch_wrapper(tf.matmul(states, target_variable[3]) + target_variable[0], is_training, tau=self.args.tau, target=self.layer1_bn, name='Target_BN1')
+			self.target_layer1_bn = batch_wrapper(tf.matmul(states, target_variable[0]) + target_variable[1], is_training, tau=self.args.tau, target=self.layer1_bn, name='Target_BN1')
 			layer1_out = tf.nn.relu(layer1_bn)
-			self.target_layer2_bn = batch_wrapper(tf.matmul(layer1_out, target_variable[4]) + target_variable[1], is_training, tau=selef.args.tau, target=self.layer2_bn,  name='Target_BN2')
+			self.target_layer2_bn = batch_wrapper(tf.matmul(layer1_out, target_variable[2]) + target_variable[3], is_training, tau=selef.args.tau, target=self.layer2_bn,  name='Target_BN2')
 			layer2_out = tf.nn.relu(layer2_bn)
-			self.layer3_layer3_bn = batch_wrapper(tf.matmul(layer2_out, target_variable[5]) + target_variable[2], is_training, tau=self.args.tau, target=self.layer3_bn, name='Traget_BN3')
-			layer3_out = self.action_bound*tf.nn.tanh(layer3_bn)
+			self.layer3_layer3_bn = batch_wrapper(tf.matmul(layer2_out, target_variable[4]) + target_variable[5], is_training, tau=self.args.tau, target=self.layer3_bn, name='Traget_BN3')
+			layer3_out = tf.tanh(layer3_bn)
 
 			return states, layer3_out, soft_update, is_training
 
 		else:
-			layer1_out = tf.nn.relu(tf.matmul(states, target_variable[3]) + target_variable[0])
-			layer2_out = tf.nn.relu(tf.matmul(layer1_out, target_variable[4]) + target_variable[1])
-			layer3_out = self.action_bound*tf.nn.tanh(tf.matmul(layer2_out, target_variable[5]) + target_variable[2])
+			layer1_out = tf.nn.relu(tf.matmul(states, target_variable[0]) + target_variable[1])
+			layer2_out = tf.nn.relu(tf.matmul(layer1_out, target_variable[2]) + target_variable[3])
+			layer3_out = tf.tanh(tf.matmul(layer2_out, target_variable[4]) + target_variable[5])
 			
 			return states, layer3_out, soft_update
 		
@@ -120,6 +120,7 @@ class Actor():
 			self.sess.run([self.target_soft_update, self.target_layer1_bn.update, self.target_layer2_bn.update, self.target_layer3_bn.update])
 		else:
 			self.sess.run(self.target_soft_update)
+#		print('Update target actor network')
 
 
 	

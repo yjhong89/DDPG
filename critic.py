@@ -56,7 +56,8 @@ class Critic():
 			self.target_states, self.target_actions, self.target_layer3_out, self.target_soft_update = self.create_target_network(variable_list)
 
 		self.target_q = tf.placeholder(tf.float32, [None])
-		self.target = self.rewards + tf.mul(1-self.done, self.args.gamma*self.target_q)
+		# Need to match shape with 'self.layer3_out'
+		self.target = tf.expand_dims(self.rewards + tf.mul(1-self.done, self.args.gamma*self.target_q), 1)
 		# Include l2 regularization term
 		self.l2_decay = 0
 		for i in variable_list:
@@ -66,7 +67,7 @@ class Critic():
 		self.l2_decay *= self.args.regularize_decay
 		self.cost = tf.reduce_mean(tf.pow(self.target - self.layer3_out, 2)) + self.l2_decay
 		self.optimizer = tf.train.AdamOptimizer(self.args.critic_lr).minimize(self.cost)
-		# To feed critic, get gradient with respect to action input
+		# To feed actor, get gradient with respect to action input
 		# Will be [batch size, num actions]
 		self.gradients = tf.gradients(self.layer3_out, self.actions)
 
@@ -97,14 +98,11 @@ class Critic():
 			return states, actions, layer3_out, soft_update
 
 
-
 	def update_target(self):
 		if self.args.bn:
 			self.sess.run([self.target_soft_update, self.target_layer1_bn.update])
 		else:
 			self.sess.run(self.target_soft_update)
+		#print('Update target critic network')
 	
-
-
-
 

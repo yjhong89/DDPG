@@ -17,12 +17,17 @@ class DDPG:
 		self.state_dim = self.env.observation_space.shape[0]
 		# Get number of actions
 		self.action_dim = self.env.action_space.shape[0]
-		self.action_bound = abs(self.env.action_space.high[0])
+		self.action_max = self.env.action_space.high
+		self.action_min = self.env.action_space.low
+		self.action_bound = (self.action_max - self.action_min)/2
+		self.action_mean = (self.action_max+ self.action_min)/2
+		print('Action info')
+		print('Max action : %3.3f, Min action : %3.3f, Action bound : %3.3f, Mean action : %3.3f' %(self.action_max, self.action_min, self.action_bound, self.action_mean)) 
 		# Get maximum steps per episode
 		self.step_per_episode = self.env.spec.timestep_limit
 		print('Number of actions : %d, Number of states : %d, Number of steps per episode : %d' % (self.action_dim, self.state_dim, self.step_per_episode))
 
-		self.actor_network = Actor(self.args, self.sess, self.state_dim, self.action_dim, self.action_bound)
+		self.actor_network = Actor(self.args, self.sess, self.state_dim, self.action_dim)
 		self.critic_network = Critic(self.args, self.sess, self.state_dim, self.action_dim)
 
 		# Initalize replay buffer
@@ -44,10 +49,10 @@ class DDPG:
 		if self.args.monitor:
 			self.env.monitor.start(self.args.env_name, force=True)
 		
-		for episode in xrange(self.args.num_episodes):
-			if np.mod(self.args.save_interval, episode+1) == 0:
-				self.save(global_step=episode+1)
-			print('%d episode starts' % (episode+1)) 
+		for episode in xrange(1, self.args.num_episodes):
+			if self.args.save_interval == episode:
+				self.save(global_step=episode)
+			print('%d episode starts' % (episode)) 
 			# Initial observation
 			observation = self.env.reset()
 			for step in xrange(self.step_per_episode):
@@ -56,7 +61,7 @@ class DDPG:
 				print('Take action %3.3f' % action)
 				current_observation = observation
 				observation, reward, done, _ = self.env.step(action)
-			
+#				print('Current obs : %s, Next obs : %s' % (current_observation, observation))	
 				self.replay_buffer.insert(state=current_observation, action=action, reward=reward, next_state=observation, done=done)
 
 				if self.replay_buffer.get_size > self.args.training_start:
@@ -78,7 +83,7 @@ class DDPG:
 
 						# Set target and update critic by minimizing the loss
 						feed_dict = {self.critic_network.states:batch_s, self.critic_network.actions:batch_act, self.critic_network.rewards:batch_rwd, self.critic_network.done:batch_done, self.critic_network.target_q:np.squeeze(batch_target_q), self.critic_network.is_training:True}
-						cost_, action_gradient, _ = self.sess.run([self.critic_network.cost, self.critic_network.gradients, self.critic_network.optimizer], feed_dict=feed_dict)
+						cost_, _ = self.sess.run([self.critic_network.cost, self.critic_network.gradients, self.critic_network.optimizer], feed_dict=feed_dict)
 
 						# Update the actor policy gradient using the sampled policy gradient
 						action_batch_q_gradient = self.sess.run(self.actor_network.layer3_out, feed_dict={self.actor_network.states:batch_s, self.actor_network.is_training:False})[0]
@@ -109,10 +114,10 @@ class DDPG:
 					self.critic_network.update_target()
 
 				if done:
-					print('%d episode end' % (episode+1))
+					print('%d episode end' % (episode))
 					self.exploration.reset()
 					if self.replay_buffer.get_size > self.args.training_start:
-						utils.write_log(self.steps, self.reward_per_episode, episode+1, start_time, mode='train', total_loss=self.cost_per_episode)
+						utils.write_log(self.steps, self.reward_per_episode, episode, start_time, mode='train', total_loss=self.cost_per_episode)
 					# Initialize log variable
 					self.initialize_statistics()
 					break
@@ -127,14 +132,14 @@ class DDPG:
 			current_policy_action = self.sess.run(self.actor_network.layer3_out, feed_dict={self.actor_network.states:np.asarray([obs]), self.actor_network.is_training:False})[0]
 		else:
 			current_policy_action = self.sess.run(self.actor_network.layer3_out, feed_dict={self.actor_network.states:np.asarray([obs])})[0]
-		return current_policy_action + self.exploration.noise()
+		return np.clip(self.action_bound*(current_policy_action + self.exploration.noise()) + self.action_mean, self.action_min, self.action_max)
 
 	def pure_actor_action(self, obs):
 		if self.args.bn:
 			current_policy_action = self.sess.run(self.actor_network.layer3_out, feed_dict={self.actor_network.states:np.asarray([obs]), self.actor_network.is_training:False})[0]
 		else:
 			current_policy_action = self.sess.run(self.actor_network.layer3_out, feed_dict={self.actor_network.states:np.asarray([obs])})[0]
-		return current_policy_action
+		return self.action_bound*current_policy_action + self.action_mean
 		
 
 	def eval(self):
