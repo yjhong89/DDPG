@@ -10,14 +10,14 @@ def initialize_log():
 	train_log_path = os.path.join(LOG_DIR, TRAIN)
 	if not os.path.exists(train_log_path):
 		train_log = open(train_log_path, 'w')
-		train_log.write('Episode\t' + 'Step\t'+',episode.rwd\t'+',episode.cost\t'+',time\n')
+		train_log.write('Episode\t' + ',Step\t'+',episode.rwd\t'+',episode.cost\t'+',time\n')
 	else:
 		train_log = open(train_log_path, 'a')
 	
 	eval_log_path = os.path.join(LOG_DIR, EVAL)
 	if not os.path.exists(eval_log_path):
 		eval_log = open(eval_log_path, 'w')
-		eval_log.write('Episode\t' + 'Step\t'+',episode.rwd\t+'+',time\n')
+		eval_log.write('Episode\t' + ',Step\t'+',episode.rwd\t+'+',time\n')
 	else:
 		eval_log = open(eval_log_path, 'a')
 
