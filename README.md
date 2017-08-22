@@ -1,5 +1,6 @@
 # DDPG
-DDPG(Deep Deterministic Policy Gradient)\n
+DDPG(Deep Deterministic Policy Gradient)
+
 Continuous Control With Deep Reinforcement Learning : https://arxiv.org/pdf/1509.02971.pdf
 
 This code is based on :
