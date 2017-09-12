@@ -44,7 +44,7 @@ class DDPG:
 		# Receive initial observation
 		self.initialize_statistics()
 	
-		utils.initialize_log()
+		utils.initialize_log(self.args.log_dir, self.model_dir+'_train.csv', self.model_dir+'_eval.csv')
 
 		if self.args.monitor:
 			self.env.monitor.start(self.args.env_name, force=True)
@@ -147,7 +147,7 @@ class DDPG:
 		start_time = time.time()
 
 		self.initialize_statistics()
-		utils.initialize_log()
+#		utils.initialize_log()
 
 		self.env.monitor.start(self.args.env_name, force=True)
 
@@ -177,7 +177,10 @@ class DDPG:
 
 	@property
 	def model_dir(self):
-		return '{}batch'.format(self.args.batch_size)
+		if self.args.bn:
+			return '{}batch_bn'.format(self.args.batch_size)
+		else:
+			return '{}batch'.format(self.args.batch_size)
 
 
 	def save(self, global_step):

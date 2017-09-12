@@ -2,19 +2,19 @@ import numpy as np
 import tensorflow as tf
 import os, time
 
-LOG_DIR = './logs'
-TRAIN = 'train.csv'
-EVAL = 'eval.csv'
+#LOG_DIR = './logs'
+#TRAIN = 'train.csv'
+#EVAL = 'eval.csv'
 
-def initialize_log():
-	train_log_path = os.path.join(LOG_DIR, TRAIN)
+def initialize_log(LOG_DIR, PATH1, PATH2):
+	train_log_path = os.path.join(LOG_DIR, PATH1)
 	if not os.path.exists(train_log_path):
 		train_log = open(train_log_path, 'w')
 		train_log.write('Episode\t' + ',Step\t'+',episode.rwd\t'+',episode.cost\t'+',time\n')
 	else:
 		train_log = open(train_log_path, 'a')
 	
-	eval_log_path = os.path.join(LOG_DIR, EVAL)
+	eval_log_path = os.path.join(LOG_DIR, PATH2)
 	if not os.path.exists(eval_log_path):
 		eval_log = open(eval_log_path, 'w')
 		eval_log.write('Episode\t' + ',Step\t'+',episode.rwd\t+'+',time\n')

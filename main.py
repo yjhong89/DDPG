@@ -17,7 +17,7 @@ def main():
 	parser.add_argument('--critic_lr', type=float, default=1e-3)
 	parser.add_argument('--tau', type=float, default=1e-3)
 	parser.add_argument('--regularize_decay', type=float, default=1e-2)
-	parser.add_argument('--bn', type=str2bool, default='n')
+	parser.add_argument('--bn', type=str2bool, default='t')
 	parser.add_argument('--num_episodes', type=int, default=100000)
 	parser.add_argument('--env_name', type=str, default='InvertedPendulum-v1')
 	parser.add_argument('--checkpoint_dir', type=str, default='./checkpoint')
