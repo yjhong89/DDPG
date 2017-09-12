@@ -24,9 +24,7 @@ class Actor():
 			weight_layer3 = tf.Variable(tf.random_uniform([self.args.layer2, self.action_dim], -3e-3, 3e-3), name='Weight3')
 			bias_layer3 = tf.Variable(tf.random_uniform([self.action_dim], -1e-3, 1e-3), name='Bias3')
 
-#		tr_vrbs = tf.trainable_variables()
 		# Bias1, Bias2, Bias3, Weight1, Weigh2, Weight3
-#		variable_list = sorted(tr_vrbs, key=lambda x: x.op.name)
 		variable_list = [weight_layer1, bias_layer1, weight_layer2, bias_layer2, weight_layer3, bias_layer3]		
 		for i in variable_list:
 			print(i.op.name)

@@ -10,14 +10,15 @@ class batch_wrapper():
 			# Directly assing to population mean and variance by exponential moving average
 			self.pop_mean = tf.get_variable('Pop_mean', [inputs.get_shape()[-1]], trainable=False, initializer=tf.constant_initializer(1))
 			self.pop_var = tf.get_variable('Pop_var', [inputs.get_shape()[-1]], trainable=False, initializer=tf.constant_initializer(0))
+			# Those variables must be declared in __init__ for when train=False in the first time
+			self.batch_mean, self.batch_var = tf.nn.moments(inputs, [0])
+			self.train_mean = tf.assign(self.pop_mean, self.pop_mean*decay + self.batch_mean*(1-decay))
+			self.train_var = tf.assign(self.pop_var, self.pop_var*decay + self.batch_var*(1-decay))
 
 		def training():
-			batch_mean, batch_var = tf.nn.moments(inputs, [0])
-			self.train_mean = tf.assign(self.pop_mean, self.pop_mean*decay + batch_mean*(1-decay))
-			self.train_var = tf.assign(self.pop_var, self.pop_var*decay + batch_var*(1-decay))
 			with tf.control_dependencies([self.train_mean, self.train_var]):
 				# Use batch mean and var when training
-				return tf.nn.batch_normalization(inputs, batch_mean, batch_var, self.beta, self.scale, variance_epsilon=1e-6)
+				return tf.nn.batch_normalization(inputs, self.batch_mean, self.batch_var, self.beta, self.scale, variance_epsilon=1e-6)
 
 		def test():
 			# Use population mean and variance when testing

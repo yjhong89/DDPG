@@ -77,9 +77,9 @@ class DDPG:
 
 					if self.args.bn:
 						# Get next action from actor target network
-						batch_next_action = self.sess.run(self.actor_network.target_layer3_out, feed_dict={self.actor_network.target_states:batch_next_s, self.target_is_training:False})
+						batch_next_action = self.sess.run(self.actor_network.target_layer3_out, feed_dict={self.actor_network.target_states:batch_next_s, self.actor_network.target_is_training:False})
 						# Get target q
-						batch_target_q = self.sess.run(self.critic_network.target_layer3_out, feed_dict={self.critic_network.target_states:batch_next_s, self.critic_network.target_actions:batch_next_action, self.target_is_training:False})
+						batch_target_q = self.sess.run(self.critic_network.target_layer3_out, feed_dict={self.critic_network.target_states:batch_next_s, self.critic_network.target_actions:batch_next_action, self.critic_network.target_is_training:False})
 
 						# Set target and update critic by minimizing the loss
 						feed_dict = {self.critic_network.states:batch_s, self.critic_network.actions:batch_act, self.critic_network.rewards:batch_rwd, self.critic_network.done:batch_done, self.critic_network.target_q:np.squeeze(batch_target_q), self.critic_network.is_training:True}
@@ -88,7 +88,7 @@ class DDPG:
 						# Update the actor policy gradient using the sampled policy gradient
 						action_batch_q_gradient = self.sess.run(self.actor_network.layer3_out, feed_dict={self.actor_network.states:batch_s, self.actor_network.is_training:False})[0]
 						action_gradient = self.sess.run(self.critic_network.gradients, feed_dict={self.critic_network.states:batch_s, self.critic_network.actions:action_batch_q_gradient, self.critic_network.is_training:False})
-						feed_dict = {self.actor_network.states:batch_s, self.actor_network.q_action_gradient:action_gradient, self.actor_is_training:True}
+						feed_dict = {self.actor_network.states:batch_s, self.actor_network.q_action_gradient:action_gradient, self.actor_network.is_training:True}
 						self.sess.run(self.actor_network.optimizer, feed_dict=feed_dict)
 
 					else:

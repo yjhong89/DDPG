@@ -16,10 +16,10 @@ class Critic():
 		self.state_dim = state_dim
 		self.action_dim = action_dim 
 
-		self.states = tf.placeholder(tf.float32, [None, self.state_dim])
-		self.actions = tf.placeholder(tf.float32, [None, self.action_dim])
-		self.rewards = tf.placeholder(tf.float32, [None])
-		self.done = tf.placeholder(tf.float32, [None])
+		self.states = tf.placeholder(tf.float32, [None, self.state_dim], name='States')
+		self.actions = tf.placeholder(tf.float32, [None, self.action_dim], name='Actions')
+		self.rewards = tf.placeholder(tf.float32, [None], name='Rewards')
+		self.done = tf.placeholder(tf.float32, [None], name='Done')
 
 		with tf.variable_scope('Critic'):
 			# Initialized from uniform distributions [-1/root(f), 1/root(f)] where f is fan-in
@@ -45,8 +45,7 @@ class Critic():
 			# Use batch normalization on all layers of the Q network prior to the action input
 			layer2_out = tf.nn.relu(tf.matmul(layer1_out, weight2) + tf.matmul(self.actions, weight2_action) + bias2)
 			self.layer3_out = tf.matmul(layer2_out, weight3) + bias3
-			self.target_states, self.target_actions, self.target_layer3_out, self.target_soft_update, self.target_is_training = \
-				self.create_target_network(variable_list)
+			self.target_states, self.target_actions, self.target_layer3_out, self.target_soft_update, self.target_is_training =	self.create_target_network(variable_list)
 
 		else:
 			layer1_out = tf.nn.relu(tf.matmul(self.states, weight1) + bias1)
@@ -55,7 +54,7 @@ class Critic():
 			self.layer3_out = tf.matmul(layer2_out, weight3) + bias3
 			self.target_states, self.target_actions, self.target_layer3_out, self.target_soft_update = self.create_target_network(variable_list)
 
-		self.target_q = tf.placeholder(tf.float32, [None])
+		self.target_q = tf.placeholder(tf.float32, [None], name='TargetQ')
 		# Need to match shape with 'self.layer3_out'
 		self.target = tf.expand_dims(self.rewards + tf.multiply(1-self.done, self.args.gamma*self.target_q), 1)
 		# Include l2 regularization term
@@ -77,14 +76,14 @@ class Critic():
 
 	def create_target_network(self, variable_list):
 		print('Creating critic target network')
-		states = tf.placeholder(tf.float32, [None, self.state_dim])
-		actions = tf.placeholder(tf.float32, [None, self.action_dim])
+		states = tf.placeholder(tf.float32, [None, self.state_dim], name='NextState')
+		actions = tf.placeholder(tf.float32, [None, self.action_dim], name='NextAction')
 		ema = tf.train.ExponentialMovingAverage(decay=1-self.args.tau)
 		soft_update = ema.apply(variable_list)
 		target_variable = [ema.average(i) for i in variable_list]
 
 		if self.args.bn:
-			is_training = tf.placeholder(tf.bool)
+			is_training = tf.placeholder(tf.bool, name='TargetTraining')
 			self.target_layer1_bn = batch_wrapper(tf.matmul(states, target_variable[0]) + target_variable[1], is_training, tau=self.args.tau, target=self.layer1_bn, name='Critic_Target_BN1')
 			layer1_out = tf.nn.relu(self.layer1_bn.do_bn)
 			layer2_out = tf.nn.relu(tf.matmul(layer1_out, target_variable[2]) + tf.matmul(actions, target_variable[3]) + target_variable[4])
