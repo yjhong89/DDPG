@@ -44,8 +44,6 @@ class DDPG:
 		# Receive initial observation
 		self.initialize_statistics()
 	
-		utils.initialize_log(self.args.log_dir, self.model_dir+'_train.csv', self.model_dir+'_eval.csv')
-
 		if self.args.monitor:
 			self.env.monitor.start(self.args.env_name, force=True)
 		
@@ -83,11 +81,11 @@ class DDPG:
 
 						# Set target and update critic by minimizing the loss
 						feed_dict = {self.critic_network.states:batch_s, self.critic_network.actions:batch_act, self.critic_network.rewards:batch_rwd, self.critic_network.done:batch_done, self.critic_network.target_q:np.squeeze(batch_target_q), self.critic_network.is_training:True}
-						cost_, _ = self.sess.run([self.critic_network.cost, self.critic_network.gradients, self.critic_network.optimizer], feed_dict=feed_dict)
+						cost_, _ = self.sess.run([self.critic_network.cost, self.critic_network.optimizer], feed_dict=feed_dict)
 
 						# Update the actor policy gradient using the sampled policy gradient
-						action_batch_q_gradient = self.sess.run(self.actor_network.layer3_out, feed_dict={self.actor_network.states:batch_s, self.actor_network.is_training:False})[0]
-						action_gradient = self.sess.run(self.critic_network.gradients, feed_dict={self.critic_network.states:batch_s, self.critic_network.actions:action_batch_q_gradient, self.critic_network.is_training:False})
+						action_batch_q_gradient = self.sess.run(self.actor_network.layer3_out, feed_dict={self.actor_network.states:batch_s, self.actor_network.is_training:False})
+						action_gradient = self.sess.run(self.critic_network.gradients, feed_dict={self.critic_network.states:batch_s, self.critic_network.actions:action_batch_q_gradient, self.critic_network.is_training:False})[0]
 						feed_dict = {self.actor_network.states:batch_s, self.actor_network.q_action_gradient:action_gradient, self.actor_network.is_training:True}
 						self.sess.run(self.actor_network.optimizer, feed_dict=feed_dict)
 
@@ -117,7 +115,8 @@ class DDPG:
 					print('%d episode end' % (episode))
 					self.exploration.reset()
 					if self.replay_buffer.get_size > self.args.training_start:
-						utils.write_log(episode, self.steps, self.reward_per_episode, episode, start_time, mode='train', total_loss=self.cost_per_episode)
+						utils.write_log(episode, self.steps, self.reward_per_episode, episode, start_time, mode='train', total_loss=self.cost_per_episode, log_dir=self.args.log_dir, path1=self.model_dir+'_train.csv', path2=self.model_dir+'_eval.csv')
+
 					# Initialize log variable
 					self.initialize_statistics()
 					break

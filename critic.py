@@ -85,7 +85,7 @@ class Critic():
 		if self.args.bn:
 			is_training = tf.placeholder(tf.bool, name='TargetTraining')
 			self.target_layer1_bn = batch_wrapper(tf.matmul(states, target_variable[0]) + target_variable[1], is_training, tau=self.args.tau, target=self.layer1_bn, name='Critic_Target_BN1')
-			layer1_out = tf.nn.relu(self.layer1_bn.do_bn)
+			layer1_out = tf.nn.relu(self.target_layer1_bn.do_bn)
 			layer2_out = tf.nn.relu(tf.matmul(layer1_out, target_variable[2]) + tf.matmul(actions, target_variable[3]) + target_variable[4])
 			layer3_out = tf.matmul(layer2_out, target_variable[5]) + target_variable[6]
 			return states, actions, layer3_out, soft_update, is_training

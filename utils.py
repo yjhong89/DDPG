@@ -24,8 +24,8 @@ def initialize_log(LOG_DIR, PATH1, PATH2):
 	return train_log, eval_log
 
 
-def write_log(episode, steps, total_rwd, num_episode, start_time, mode, total_loss=0):
-	train_log, eval_log = initialize_log()
+def write_log(episode, steps, total_rwd, num_episode, start_time, mode, log_dir, path1, path2, total_loss=0):
+	train_log, eval_log = initialize_log(log_dir, path1, path2)
 
 	if mode == 'train':
 		print('At Training step %d, %d-th episode => total.rwd : %3.4f, total.cost : %3.4f' % \
